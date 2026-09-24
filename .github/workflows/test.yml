@@ -1,0 +1,33 @@
+name: GitHub Runners Geo and Latency Test
+
+on:
+  workflow_dispatch: # Позволяет запускать тест вручную из панели GitHub
+
+jobs:
+  check-geo-and-speed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Установка утилиты nping и traceroute
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nmap traceroute
+
+      - name: 2. Определение точной геолокации раннера
+        run: |
+          echo "=== ГЕОЛОКАЦИЯ ТЕКУЩЕГО РАННЕРА ==="
+          curl -s https://ipinfo.io
+          echo "===================================="
+
+      - name: 3. Измерение TCP-задержки до сервера в США
+        run: |
+          echo "=== ЗАМЕР ЗАДЕРЖКИ ДО 2.56.122.108 (Порт 22) ==="
+          sudo nping --tcp -p 22 -c 5 2.56.122.108
+          echo "================================================="
+
+      - name: 4. Трассировка сетевого маршрута (TCP-режим)
+        run: |
+          echo "=== МАРШРУТ ДО СЕРВЕРА ==="
+          # Используем TCP-трассировку (-T), так как обычный ICMP на раннерах заблокирован
+          sudo traceroute -T -p 22 -m 20 2.56.122.108
+          echo "==========================="
